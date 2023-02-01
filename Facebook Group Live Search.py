@@ -5,7 +5,10 @@ import time
 from playsound import playsound
 import re
 
-sound = r"C:\Users\Admin\Desktop\Facebook LiveSearch\notificationSound.wav"
+
+import os
+
+sound = os.getcwd() + r"\notificationSound.wav"
 
 
 option = Options()
@@ -86,7 +89,8 @@ def getGroupPosts(groupURL, waitTime, driver):
 liveSearch (None): list of strings, string
 Takes a facebook group link and prints/plays a sound if a new post matches the criteria
 '''
-def liveSearch(mustContain, url):
+def liveSearch(regex, url):
+    pattern = re.compile(regex)
     oldPosts = set()
     while True:
         newPosts = getGroupPosts(url, 10, driver)
@@ -95,10 +99,9 @@ def liveSearch(mustContain, url):
             continue
         difference = set(newPosts) - set(oldPosts)
         if len(difference) > 0:
-            print(len(difference))
+            print('Number of new posts: {}'.format(len(difference)))
             oldPosts = oldPosts.union(set(newPosts))
-            filteredPosts = [post for post in difference if any(mKey.upper() in post[1].upper() for mKey in mustContain)]
-            filteredPosts = [post for post in filteredPosts if not 'LOOKING' in post[1].upper()]
+            filteredPosts = [post for post in difference if pattern.match(post[1].lower())]
             if len(filteredPosts) > 0:
                 for post in filteredPosts:
                     print(post)
@@ -106,10 +109,10 @@ def liveSearch(mustContain, url):
 
 if __name__ == "__main__":
     group = 'https://www.facebook.com/groups/225049564330328?sorting_setting=CHRONOLOGICAL'
-    credentials = 'C:\\Users\\Admin\\Desktop\\Facebook LiveSearch\\Credentials.txt'
+    credentials = os.getcwd() + r'\Credentials.txt'
     userPass = open(credentials, "r").read().split('\n')
     if loginFacebook(userPass[0], userPass[1], driver):
-        #regexFilter = "^(?!.*\blooking\b)(?=.*(mark|mk|fmp|unionville|scar|sk|rich|rch|time)).*$"
+        regexFilter = r"^(?!.*\blooking\b)(?=.*(mark|mk|fmp|unionville|scar|sk|rich|rch|time)).*$"
         #newPosts = getGroupPosts(group, 10, driver)
-        liveSearch(['mark', 'mk', 'fmp', 'unionville', 'scar', 'sk', 'rich', 'rch', 'time'], group)
+        liveSearch(regexFilter, group)
 
